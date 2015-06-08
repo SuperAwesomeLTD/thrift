@@ -138,12 +138,8 @@
         case NSStreamEventHasSpaceAvailable:
         {
             SecPolicyRef policy = SecPolicyCreateSSL(NO, (__bridge CFStringRef)(sslHostname));
-            SecTrustRef trust = NULL;
-            CFArrayRef streamCertificatesRef =
-            CFBridgingRetain((__bridge id)((__bridge CFArrayRef)([aStream propertyForKey:(NSString *) kCFStreamPropertySSLPeerCertificates])));
-            SecTrustCreateWithCertificates(CFBridgingRetain((__bridge id)(streamCertificatesRef)),
-                                           policy,
-                                           &trust);
+            SecTrustRef trust = (SecTrustRef)CFBridgingRetain([aStream propertyForKey:(__bridge NSString *)kCFStreamPropertySSLPeerTrust]);
+            SecTrustSetPolicies(trust, policy);
             
             SecTrustResultType trustResultType = kSecTrustResultInvalid;
             SecTrustEvaluate(trust, &trustResultType);
