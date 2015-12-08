@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name = "thrift"
-  s.version = "0.9.2"
+  s.version = "0.9.3"
   s.license = "Apache"
   s.summary = "Apache Thrift Cocoa Runtime"
   s.authors = "Apache Software Foundation"
