@@ -182,7 +182,7 @@
             if (!proceed) {
                 NSLog(@"Cannot trust certificate. TrustResultType: %u", trustResultType);
                 [aStream close];
-                @throw [TSSLSocketException exceptionWithReason: @"Cannot trust certificate"];
+//                @throw [TSSLSocketException exceptionWithReason: @"Cannot trust certificate"];
             }
         }
             break;
