@@ -39,43 +39,39 @@
     sslHostname = hostname;
 	CFReadStreamRef readStream = NULL;
 	CFWriteStreamRef writeStream = NULL;
+    struct addrinfo hints;
+    memset(&hints,0,sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = 0;
+    hints.ai_flags = AI_ADDRCONFIG;
+    struct addrinfo* res = 0, *r = 0;
     
-    
+    char *portString = [[NSString stringWithFormat:@"%d", port] UTF8String];
+    char *hostnameString = [hostname UTF8String];
     /* create a socket structure */
-    struct sockaddr_in pin;
-    struct hostent *hp = NULL;
-    for(int i = 0; i < 10; i++) {
-        
-
-        
-        if ((hp = gethostbyname([hostname UTF8String])) == NULL) { 
-            NSLog(@"failed to resolve hostname %@", hostname);
-            herror("resolv");
-            if(i == 9) {
-                @throw [TSSLSocketException exceptionWithReason: @"failed to resolve hostname"];
-            }
-            [NSThread sleepForTimeInterval:0.2];
-        } else {
-            break;
-        }
-    }
-
-    memset (&pin, 0, sizeof(pin));
-    pin.sin_family = AF_INET;
-    memcpy(&pin.sin_addr, hp->h_addr, sizeof(struct in_addr));
-    pin.sin_port = htons (port);
-    
-    /* create the socket */
-    if ((sd = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
-    {
-        NSLog(@"failed to create socket for host %@:%d", hostname, port);
-        @throw [TSSLSocketException exceptionWithReason: @"failed to create socket"];
+    int err = getaddrinfo(hostnameString, portString, &hints, &res);
+    if (err != 0) {
+        printf("failed to resolve remote socket address (err=%d)", err);
+        return err;
     }
     
     /* open a connection */
-    if (connect (sd, (struct sockaddr *) &pin, sizeof(pin)) == -1)
-    {
-        NSLog(@"failed to create conenct to host %@:%d", hostname, port);
+    BOOL success = NO;
+    for (r = res; r; r = r->ai_next) {
+        sd = socket(r->ai_family, r->ai_socktype, r->ai_protocol);
+        
+        if (connect (sd, res->ai_addr, res->ai_addrlen) < 0)
+        {
+            NSLog(@"failed to create conenct to host %@:%d", hostname, port);
+        }
+        else {
+            success = YES;
+            break;
+        }
+    }
+    
+    if (!success) {
         @throw [TSSLSocketException exceptionWithReason: @"failed to connect"];
     }
     CFStreamCreatePairWithSocket(kCFAllocatorDefault, sd, &readStream, &writeStream);
