@@ -52,8 +52,7 @@
     /* create a socket structure */
     int err = getaddrinfo(hostnameString, portString, &hints, &res);
     if (err != 0) {
-        printf("failed to resolve remote socket address (err=%d)", err);
-        return err;
+        @throw [TSSLSocketException exceptionWithReason:[NSString stringWithFormat:@"failed to resolve remote socket address (err=%d)", err]];
     }
     
     /* open a connection */
